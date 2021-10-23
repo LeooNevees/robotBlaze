@@ -12,12 +12,12 @@ class Double:
 
     def process(self):
         try:
-            driverBlaze = webdriver.Chrome(executable_path=r"/var/www/html/blaze/driver/chromedriver")
+            driverBlaze = webdriver.Chrome(executable_path=r"/var/www/html/robotBlaze/driver/chromedriver")
             retBlaze = self.initBlaze(driverBlaze)
             if retBlaze == 0:
                 raise Exception("Erro no processo do site Blaze")
             
-            driverTelegram = webdriver.Chrome(executable_path=r"/var/www/html/blaze/driver/chromedriver")
+            driverTelegram = webdriver.Chrome(executable_path=r"/var/www/html/robotBlaze/driver/chromedriver")
             retTelegram = self.initTelegram(driverTelegram)
             if retTelegram == False:
                 raise Exception("Erro no processo do site Telegram")
@@ -353,7 +353,7 @@ class Double:
             botaoComecarJogo = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="roulette-controller"]/div[1]/div[2]/button')))
             if botaoComecarJogo == False:
                 raise Exception('Erro ao identificar o botao Começar Jogo ')
-            botaoComecarJogo.click()
+            # botaoComecarJogo.click()
 
             if brancoAposta == True:
                 aguardarBotao = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="roulette-controller"]/div[1]/div[2]/button')))
@@ -365,7 +365,7 @@ class Double:
                 if botaoCorBranco == False:
                     raise Exception('Erro ao identificar o botao da Cor Branco')
                 botaoCorBranco.click()
-                botaoComecarJogo.click()
+                # botaoComecarJogo.click()
 
             print('Feito Aposta')     
             print('Analisando WIN')       
