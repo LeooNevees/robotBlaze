@@ -88,7 +88,7 @@ class Double:
     def loop(self, driverBlaze, driverTelegram):
         try:
             logging.basicConfig(filename='apostasRealizadas.txt', level=logging.ERROR)
-            logging.error(';'+str('valorAPosta')+';'+ str('corAposta')+';'+ str('brancoAposta')+';'+ str('winAposta')+';'+ str('contadorAposta')+ str('Data/Hora'))
+            logging.error(';'+str('valorAPosta')+';'+ str('corAposta')+';'+ str('brancoAposta')+';'+ str('winAposta')+';'+ str('contadorAposta')+';'+ str('Data/Hora'))
 
             if driverBlaze == '' :
                 raise Exception ('Driver Blaze não fornecido no método loop')
@@ -145,7 +145,7 @@ class Double:
                 winAposta = retAposta[1]
                 ultimaCorBlaze = retAposta[2]
                 ultimoNumBlaze = retAposta[3]
-                logging.error(';'+str(valorAPosta)+';'+ str(corAposta)+';'+ str(brancoAposta)+';'+ str(winAposta)+';'+ str(contadorAposta) + str(datetime.today()))
+                logging.error(';'+str(valorAPosta)+';'+ str(corAposta)+';'+ str(brancoAposta)+';'+ str(winAposta)+';'+ str(contadorAposta) +';'+ str(datetime.today()))
                 
                 if winAposta == True:
                     valorAPosta = valorAPostaInicial
@@ -187,7 +187,7 @@ class Double:
                     winAposta = newRetAposta[1]
                     ultimaCorBlaze = newRetAposta[2]
                     ultimoNumBlaze = newRetAposta[3]
-                    logging.error(';'+str(valorAPosta)+';'+ str(corAposta)+';'+ str(brancoAposta)+';'+ str(winAposta)+';'+ str(contadorAposta) + str(datetime.today()))
+                    logging.error(';'+str(valorAPosta)+';'+ str(corAposta)+';'+ str(brancoAposta)+';'+ str(winAposta)+';'+ str(contadorAposta) +';'+ str(datetime.today()))
 
                     if winAposta == True:
                         valorAPosta = valorAPostaInicial
