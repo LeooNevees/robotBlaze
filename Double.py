@@ -96,6 +96,7 @@ class Double:
                 raise Exception ('Driver Telegram não fornecido no método loop')
 
             valorAPostaInicial = 0.02
+            valorAPostaExtra = 0.02
             valorAPosta = valorAPostaInicial
             timestampAnterior = ''
             contadorAposta = 1
@@ -135,6 +136,11 @@ class Double:
                 # print('numJogadaAnterior: ', numJogadaAnterior)
                 # print('corJogadaAnterior: ', corJogadaAnterior)
 
+                if contadorAposta == 4:
+                    valorAPosta = float(valorAPosta) + float(valorAPostaExtra)
+                elif contadorAposta == 10:
+                    valorAPosta = float(valorAPosta) - float(valorAPostaExtra + (((((valorAPostaExtra * 2)*2)*2)*2)*2))
+
                 retAposta = self.bet(driverBlaze, valorAPosta, corAposta, brancoAposta, numJogadaAnterior, corJogadaAnterior)
                 if retAposta == None:
                     continue
@@ -151,26 +157,6 @@ class Double:
                     valorAPosta = valorAPostaInicial
                     contadorAposta = 1
                     continue
-
-                # if winAposta == True:
-                #     valorAPosta = valorAPostaInicial
-                #     contadorAposta = 1
-                #     continue
-                # else:
-                #     print('INICIADO MARTINGALE')
-                #     contadorAposta = int(contadorAposta) + int(1)
-                #     valorAPosta = float(valorAPosta) * 2
-                #     newRetAposta = self.bet(driverBlaze, valorAPosta, str(corAposta), brancoAposta, int(ultimoNumBlaze), str(ultimaCorBlaze))
-                #     erroAposta = newRetAposta[0]
-                #     if erroAposta == True:
-                #         raise Exception('Erro na aposta Martingale. Dados: ', retMsg)
-                #     winAposta = newRetAposta[1]
-                #     ultimaCorBlaze = newRetAposta[2]
-                #     ultimoNumBlaze = newRetAposta[3]
-                #     logging.error(';'+str(valorAPosta)+';'+ str(corAposta)+';'+ str(brancoAposta)+';'+ str(winAposta)+';'+ str(contadorAposta))
-
-                #     valorAPosta = valorAPostaInicial
-                #     contadorAposta = 1  
 
                 # MARTINGALE
                 for i in [1, 2]: 
@@ -196,6 +182,7 @@ class Double:
 
                     if winAposta == False and i == 2:
                         valorAPosta = float(valorAPosta) * 2
+                        contadorAposta = int(contadorAposta) + int(1)
 
             return True
         except Exception as error:
