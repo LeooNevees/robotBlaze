@@ -138,7 +138,7 @@ class Double:
 
                 if contadorAposta == 4:
                     valorAPosta = float(valorAPosta) + float(valorAPostaExtra)
-                elif contadorAposta == 10:
+                elif contadorAposta == 9:
                     valorAPosta = float(valorAPosta) - float(valorAPostaExtra + (((((valorAPostaExtra * 2)*2)*2)*2)*2))
 
                 retAposta = self.bet(driverBlaze, valorAPosta, corAposta, brancoAposta, numJogadaAnterior, corJogadaAnterior)
@@ -340,7 +340,7 @@ class Double:
             botaoComecarJogo = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="roulette-controller"]/div[1]/div[2]/button')))
             if botaoComecarJogo == False:
                 raise Exception('Erro ao identificar o botao Começar Jogo ')
-            botaoComecarJogo.click()
+            # botaoComecarJogo.click()
 
             if brancoAposta == True:
                 aguardarBotao = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="roulette-controller"]/div[1]/div[2]/button')))
@@ -352,7 +352,7 @@ class Double:
                 if botaoCorBranco == False:
                     raise Exception('Erro ao identificar o botao da Cor Branco')
                 botaoCorBranco.click()
-                botaoComecarJogo.click()
+                # botaoComecarJogo.click()
 
             print('Feito Aposta')     
             print('Analisando WIN')       
