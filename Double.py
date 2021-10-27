@@ -96,7 +96,7 @@ class Double:
                 raise Exception ('Driver Telegram não fornecido no método loop')
 
             valorAPostaInicial = 0.02
-            valorAPostaExtra = 0.02
+            valorAPostaExtra = 0.10
             valorAPosta = valorAPostaInicial
             timestampAnterior = ''
             contadorAposta = 1
@@ -340,7 +340,7 @@ class Double:
             botaoComecarJogo = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="roulette-controller"]/div[1]/div[2]/button')))
             if botaoComecarJogo == False:
                 raise Exception('Erro ao identificar o botao Começar Jogo ')
-            # botaoComecarJogo.click()
+            botaoComecarJogo.click()
 
             if brancoAposta == True:
                 aguardarBotao = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="roulette-controller"]/div[1]/div[2]/button')))
@@ -352,7 +352,7 @@ class Double:
                 if botaoCorBranco == False:
                     raise Exception('Erro ao identificar o botao da Cor Branco')
                 botaoCorBranco.click()
-                # botaoComecarJogo.click()
+                botaoComecarJogo.click()
 
             print('Feito Aposta')     
             print('Analisando WIN')       
