@@ -96,7 +96,6 @@ class Double:
                 raise Exception ('Driver Telegram não fornecido no método loop')
 
             valorAPostaInicial = 0.02
-            valorAPostaExtra = 0.10
             valorAPosta = valorAPostaInicial
             timestampAnterior = ''
             contadorAposta = 1
@@ -130,16 +129,8 @@ class Double:
                     continue
                 timestampAnterior = timestamp
 
-                # print('Identificado no Telegram nova APOSTA')
-                # print('Cor: ',corAposta)
-                # print('Apostar Branco: ', brancoAposta)
-                # print('numJogadaAnterior: ', numJogadaAnterior)
-                # print('corJogadaAnterior: ', corJogadaAnterior)
-
-                if contadorAposta == 4:
-                    valorAPosta = float(valorAPosta) + float(valorAPostaExtra)
-                elif contadorAposta == 9:
-                    valorAPosta = float(valorAPosta) - float(valorAPostaExtra + (((((valorAPostaExtra * 2)*2)*2)*2)*2))
+                print('Analisando Entrada')
+                retFirstLoss = self.waitingFirstLoss(driverBlaze, corAposta, brancoAposta, numJogadaAnterior, corJogadaAnterior)      
 
                 retAposta = self.bet(driverBlaze, valorAPosta, corAposta, brancoAposta, numJogadaAnterior, corJogadaAnterior)
                 if retAposta == None:
@@ -355,44 +346,29 @@ class Double:
                 # botaoComecarJogo.click()
 
             print('Feito Aposta')     
-            print('Analisando WIN')       
-
-            # FAZER TRATATIVA DO WIN AQUI
-            newStyleTemporizador = str('display: flex;')
-            while (newStyleTemporizador != 'display: none;'):
-                divPai = wait.until(EC.presence_of_element_located((By.ID, 'roulette-timer')))
-                divTemporizadorBlaze = divPai.find_element_by_class_name('progress-bar')
-                if divTemporizadorBlaze == False:
-                    raise Exception('Não identificado div do Temporizador Blaze para analise de WIN')
-                newStyleTemporizador = divTemporizadorBlaze.get_attribute("style")
-                if newStyleTemporizador != 'display: none;':
-                    time.sleep(2)
-
-            newRetLastBet = self.getLastBet(driver)
-            erroNewBet = newRetLastBet[0]
-            if erroNewBet == True:
-                raise Exception('Erro ao tentar buscar ultima aposta Blaze para consultar WIN')
-            newUltimaCorBlaze = newRetLastBet[1]
-            newUltimoNumBlaze = newRetLastBet[2]
-
-            win = False
-            if str(newUltimaCorBlaze) == str(corAposta):
-                win = True
-
-            if str(newUltimaCorBlaze) == 'white' and brancoAposta == True:
-                win = True
 
             # return [Erro (true ou false), Win (true ou false), ultimaCorBlaze, ultimoNumBlaze]
-            print('Resultado - WIN: ' + str(win) + ' | Cor: ' + str(newUltimaCorBlaze) + ' | Num: ' + str(newUltimoNumBlaze))
-            return [False, win, newUltimaCorBlaze, newUltimoNumBlaze]
+            # print('Resultado - WIN: ' + str(win) + ' | Cor: ' + str(newUltimaCorBlaze) + ' | Num: ' + str(newUltimoNumBlaze))
+            return [False]
         except Exception as error:
             print('Erro Método bet: ', error)
             return [True]
 
-    def getLastBet(self, driver):
+    def getLastBet(self, driver, aguardar = False):
         try:
             wait = WebDriverWait(driver, 30)
         
+            if aguardar == True:
+                newStyleTemporizador = str('display: flex;')
+                while (newStyleTemporizador != 'display: none;'):
+                    divPai = wait.until(EC.presence_of_element_located((By.ID, 'roulette-timer')))
+                    divTemporizadorBlaze = divPai.find_element_by_class_name('progress-bar')
+                    if divTemporizadorBlaze == False:
+                        raise Exception('Não identificado div do Temporizador Blaze para analise de WIN')
+                    newStyleTemporizador = divTemporizadorBlaze.get_attribute("style")
+                    if newStyleTemporizador != 'display: none;':
+                        time.sleep(2)
+
             styleTemporizador = str('display: none;')
             while (styleTemporizador != 'display: flex;'):
                 divPai = wait.until(EC.presence_of_element_located((By.ID, 'roulette-timer')))
@@ -417,6 +393,115 @@ class Double:
                     raise Exception('Erro ao identificar a div do Num última jogada')
 
                 ultimoNumBlaze = divUltNumBlaze.text
+
+            # return [Erro (true ou false), UltimaCor, UltimoNumero]
+            return [False, str(ultimaCorBlaze), ultimoNumBlaze]
+        except Exception as error:
+            print('Erro Método getLastBet: ', error)
+            return [True]
+        
+    def martingale(self, driver, contadorAposta, corAposta, brancoAposta, ultimoNumBlaze, ultimaCorBlaze):
+        try:
+            wait = WebDriverWait(driver, 30)
+
+            # MARTINGALE
+            for i in [1, 2]: 
+                if winAposta == True:
+                    continue
+
+                print('INICIADO MARTINGALE: ', i)
+                contadorAposta = int(contadorAposta) + int(1)
+                valorAPosta = float(valorAPosta) * 2
+                newRetAposta = self.bet(driver, valorAPosta, str(corAposta), brancoAposta, int(ultimoNumBlaze), str(ultimaCorBlaze))
+                erroAposta = newRetAposta[0]
+                if erroAposta == True:
+                    raise Exception('Erro na aposta Martingale. Dados: ', retMsg)
+                winAposta = newRetAposta[1]
+                ultimaCorBlaze = newRetAposta[2]
+                ultimoNumBlaze = newRetAposta[3]
+                logging.error(';'+str(valorAPosta)+';'+ str(corAposta)+';'+ str(brancoAposta)+';'+ str(winAposta)+';'+ str(contadorAposta) +';'+ str(datetime.today()))
+
+                if winAposta == True:
+                    valorAPosta = valorAPostaInicial
+                    contadorAposta = 1                        
+                    continue
+
+                if winAposta == False and i == 2:
+                    valorAPosta = float(valorAPosta) * 2
+                    contadorAposta = int(contadorAposta) + int(1)
+            
+
+            # return [Erro (true ou false), UltimaCor, UltimoNumero]
+            return [False, str(ultimaCorBlaze), ultimoNumBlaze]
+        except Exception as error:
+            print('Erro Método getLastBet: ', error)
+            return [True]
+
+    def waitingFirstLoss(self, driver, corAposta, brancoAposta, numJogadaAntTelegram, corJogadaAntTelegram):
+        try:
+            if corAposta == '' or corAposta != 'VERMELHO' and corAposta != 'PRETO':
+                raise Exception('Cor inválida: ', corAposta)
+            elif brancoAposta != True and brancoAposta != False:
+                raise Exception('Situação inválida para o Branco: ', brancoAposta)
+            elif numJogadaAntTelegram == '' or not isinstance(numJogadaAntTelegram, int):
+                    raise Exception('Numero da Jogada Anterior inválido: ', numJogadaAntTelegram)
+            elif corJogadaAntTelegram == '' or corJogadaAntTelegram != 'red' and corJogadaAntTelegram != 'black' and corJogadaAntTelegram != 'white':
+                raise Exception('Cor da Jogada Anterior inválido: ', corJogadaAntTelegram)
+
+            wait = WebDriverWait(driver, 30)
+            bet = True
+            while(bet == True):
+                for i in [1, 2, 3]:
+                    if win == True:
+                        continue
+
+                    retLastBet = self.getLastBet(driver, False)
+                    erroNewBet = retLastBet[0]
+                    if erroNewBet == True:
+                        raise Exception('Erro ao tentar buscar ultima aposta Blaze para consultar Entrada')
+                    newUltimaCorBlaze = retLastBet[1]
+                    newUltimoNumBlaze = retLastBet[2]
+
+                    win = False
+                    if str(newUltimaCorBlaze) == str(corAposta):
+                        win = True
+
+                    if str(newUltimaCorBlaze) == 'white' and brancoAposta == True:
+                        win = True
+
+                    print('Resultado - WIN: ' + str(win) + ' | Cor: ' + str(newUltimaCorBlaze) + ' | Num: ' + str(newUltimoNumBlaze))
+                    
+                    if win == True:
+                        continue
+            
+
+
+            # MARTINGALE
+            for i in [1, 2]: 
+                if winAposta == True:
+                    continue
+
+                print('INICIADO MARTINGALE: ', i)
+                contadorAposta = int(contadorAposta) + int(1)
+                valorAPosta = float(valorAPosta) * 2
+                newRetAposta = self.bet(driver, valorAPosta, str(corAposta), brancoAposta, int(ultimoNumBlaze), str(ultimaCorBlaze))
+                erroAposta = newRetAposta[0]
+                if erroAposta == True:
+                    raise Exception('Erro na aposta Martingale. Dados: ', retMsg)
+                winAposta = newRetAposta[1]
+                ultimaCorBlaze = newRetAposta[2]
+                ultimoNumBlaze = newRetAposta[3]
+                logging.error(';'+str(valorAPosta)+';'+ str(corAposta)+';'+ str(brancoAposta)+';'+ str(winAposta)+';'+ str(contadorAposta) +';'+ str(datetime.today()))
+
+                if winAposta == True:
+                    valorAPosta = valorAPostaInicial
+                    contadorAposta = 1                        
+                    continue
+
+                if winAposta == False and i == 2:
+                    valorAPosta = float(valorAPosta) * 2
+                    contadorAposta = int(contadorAposta) + int(1)
+            
 
             # return [Erro (true ou false), UltimaCor, UltimoNumero]
             return [False, str(ultimaCorBlaze), ultimoNumBlaze]
