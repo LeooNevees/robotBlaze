@@ -423,7 +423,6 @@ class Double:
                 numJogadaAnterior = retMsg[3]
                 corJogadaAnterior = retMsg[4]
                 timestamp = retMsg[5]
-                print('Cor para apostar: ', str(corAposta))
                 
                 if erro == True:
                     raise Exception('Erro ao tentar identificar os dados do Telegram. Array: ', retMsg)
@@ -442,6 +441,15 @@ class Double:
                     print('Timestamp igual ao anterior.... Refazendo busca!')
                     continue
                 timestampAnterior = timestamp
+
+                if corAposta == 'VERMELHO':
+                    corAposta = 'red'
+                elif corAposta == 'PRETO':
+                    corAposta = 'black'
+                else:
+                    raise Exception('Erro ao identificar a cor da Aposta')
+
+                print('Cor para apostar: ', str(corAposta))
 
                 print('Iniciando Busca da ultima Aposta')
                 retLastBet = self.getLastBet(driverBlaze, True)

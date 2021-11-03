@@ -15,3 +15,9 @@ ERROR:root:;valorAPosta;corAposta;brancoAposta;winAposta;contadorAposta;Data/Hor
 ERROR:root:;valorAPosta;corAposta;brancoAposta;winAposta;contadorAposta;Data/Hora
 ERROR:root:;valorAPosta;corAposta;brancoAposta;winAposta;contadorAposta;Data/Hora
 ERROR:root:;valorAPosta;corAposta;brancoAposta;winAposta;contadorAposta;Data/Hora
+ERROR:root:;valorAPosta;corAposta;brancoAposta;winAposta;contadorAposta;Data/Hora
+ERROR:root:;valorAPosta;corAposta;brancoAposta;winAposta;contadorAposta;Data/Hora
+ERROR:root:;valorAPosta;corAposta;brancoAposta;winAposta;contadorAposta;Data/Hora
+ERROR:root:;valorAPosta;corAposta;brancoAposta;winAposta;contadorAposta;Data/Hora
+ERROR:root:;valorAPosta;corAposta;brancoAposta;winAposta;contadorAposta;Data/Hora
+ERROR:root:;valorAPosta;corAposta;brancoAposta;winAposta;contadorAposta;Data/Hora
