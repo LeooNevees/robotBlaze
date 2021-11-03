@@ -93,15 +93,24 @@ class Double:
             if driverBlaze == '' :
                 raise Exception ('Driver Blaze não fornecido no método loop')
             elif driverTelegram == '' :
-                raise Exception ('Driver Telegram não fornecido no método loop')
+                raise Exception ('Driver Telegram não fornecido no método loop') 
 
             valorAPostaInicial = 0.02
             valorAPosta = valorAPostaInicial
             timestampAnterior = ''
             contadorAposta = 1
+            aguardarLoss = True
 
             while(True):
                 time.sleep(3)
+                if aguardarLoss == True:
+                    retFirstLoss = self.waitingFirstLoss(driverBlaze, driverTelegram)
+                    print('Saiu do aguardo First Loss')
+                    if retFirstLoss == False:
+                        raise Exception('Erro ao tentar identificar o Primeiro Loss')  
+                
+                aguardarLoss = False
+                print('Procurando ultima mensagem Telegram')
                 retMsg = self.getLastMessage(driverTelegram)
                 erro = retMsg[0]
                 if erro == True:
@@ -129,51 +138,29 @@ class Double:
                     continue
                 timestampAnterior = timestamp
 
-                print('Analisando Entrada')
-                retFirstLoss = self.waitingFirstLoss(driverBlaze, corAposta, brancoAposta, numJogadaAnterior, corJogadaAnterior)      
-
-                retAposta = self.bet(driverBlaze, valorAPosta, corAposta, brancoAposta, numJogadaAnterior, corJogadaAnterior)
-                if retAposta == None:
-                    continue
-
-                erroAposta = retAposta[0]
-                if erroAposta == True:
-                    raise Exception('Erro na aposta. Dados: ', retMsg)
-                winAposta = retAposta[1]
-                ultimaCorBlaze = retAposta[2]
-                ultimoNumBlaze = retAposta[3]
-                logging.error(';'+str(valorAPosta)+';'+ str(corAposta)+';'+ str(brancoAposta)+';'+ str(winAposta)+';'+ str(contadorAposta) +';'+ str(datetime.today()))
-                
-                if winAposta == True:
-                    valorAPosta = valorAPostaInicial
-                    contadorAposta = 1
-                    continue
-
-                # MARTINGALE
-                for i in [1, 2]: 
+                for i in [1, 2, 3]: 
                     if winAposta == True:
                         continue
 
-                    print('INICIADO MARTINGALE: ', i)
-                    contadorAposta = int(contadorAposta) + int(1)
-                    valorAPosta = float(valorAPosta) * 2
                     newRetAposta = self.bet(driverBlaze, valorAPosta, str(corAposta), brancoAposta, int(ultimoNumBlaze), str(ultimaCorBlaze))
                     erroAposta = newRetAposta[0]
                     if erroAposta == True:
-                        raise Exception('Erro na aposta Martingale. Dados: ', retMsg)
+                        raise Exception('Erro na aposta. Dados: ', retMsg)
                     winAposta = newRetAposta[1]
                     ultimaCorBlaze = newRetAposta[2]
                     ultimoNumBlaze = newRetAposta[3]
                     logging.error(';'+str(valorAPosta)+';'+ str(corAposta)+';'+ str(brancoAposta)+';'+ str(winAposta)+';'+ str(contadorAposta) +';'+ str(datetime.today()))
 
-                    if winAposta == True:
-                        valorAPosta = valorAPostaInicial
-                        contadorAposta = 1                        
-                        continue
-
-                    if winAposta == False and i == 2:
-                        valorAPosta = float(valorAPosta) * 2
+                    if i > 1:
+                        print('INICIADO MARTINGALE: ', i)
                         contadorAposta = int(contadorAposta) + int(1)
+                        valorAPosta = float(valorAPosta) * 2
+
+                    if winAposta == True or i == 3:
+                        valorAPosta = valorAPostaInicial
+                        contadorAposta = 1  
+                                             
+                aguardarLoss = True
 
             return True
         except Exception as error:
@@ -281,7 +268,7 @@ class Double:
             elif brancoAposta != True and brancoAposta != False:
                 raise Exception('Situação inválida para o Branco: ', brancoAposta)
             elif numJogadaAntTelegram == '' or not isinstance(numJogadaAntTelegram, int):
-                    raise Exception('Numero da Jogada Anterior inválido: ', numJogadaAntTelegram)
+                raise Exception('Numero da Jogada Anterior inválido: ', numJogadaAntTelegram)
             elif corJogadaAntTelegram == '' or corJogadaAntTelegram != 'red' and corJogadaAntTelegram != 'black' and corJogadaAntTelegram != 'white':
                 raise Exception('Cor da Jogada Anterior inválido: ', corJogadaAntTelegram)
 
@@ -346,10 +333,25 @@ class Double:
                 # botaoComecarJogo.click()
 
             print('Feito Aposta')     
+            print('Analisando WIN')       
+
+            newRetLastBet = self.getLastBet(driver, True)
+            erroNewBet = newRetLastBet[0]
+            if erroNewBet == True:
+                raise Exception('Erro ao tentar buscar ultima aposta Blaze para consultar WIN')
+            newUltimaCorBlaze = newRetLastBet[1]
+            newUltimoNumBlaze = newRetLastBet[2]
+
+            win = False
+            if str(newUltimaCorBlaze) == str(corAposta):
+                win = True
+
+            if str(newUltimaCorBlaze) == 'white' and brancoAposta == True:
+                win = True
 
             # return [Erro (true ou false), Win (true ou false), ultimaCorBlaze, ultimoNumBlaze]
-            # print('Resultado - WIN: ' + str(win) + ' | Cor: ' + str(newUltimaCorBlaze) + ' | Num: ' + str(newUltimoNumBlaze))
-            return [False]
+            print('Resultado - WIN: ' + str(win) + ' | Cor: ' + str(newUltimaCorBlaze) + ' | Num: ' + str(newUltimoNumBlaze))
+            return [False, win, newUltimaCorBlaze, newUltimoNumBlaze]
         except Exception as error:
             print('Erro Método bet: ', error)
             return [True]
@@ -400,112 +402,79 @@ class Double:
             print('Erro Método getLastBet: ', error)
             return [True]
         
-    def martingale(self, driver, contadorAposta, corAposta, brancoAposta, ultimoNumBlaze, ultimaCorBlaze):
+
+    def waitingFirstLoss(self, driverBlaze, driverTelegram):
         try:
-            wait = WebDriverWait(driver, 30)
-
-            # MARTINGALE
-            for i in [1, 2]: 
-                if winAposta == True:
-                    continue
-
-                print('INICIADO MARTINGALE: ', i)
-                contadorAposta = int(contadorAposta) + int(1)
-                valorAPosta = float(valorAPosta) * 2
-                newRetAposta = self.bet(driver, valorAPosta, str(corAposta), brancoAposta, int(ultimoNumBlaze), str(ultimaCorBlaze))
-                erroAposta = newRetAposta[0]
-                if erroAposta == True:
-                    raise Exception('Erro na aposta Martingale. Dados: ', retMsg)
-                winAposta = newRetAposta[1]
-                ultimaCorBlaze = newRetAposta[2]
-                ultimoNumBlaze = newRetAposta[3]
-                logging.error(';'+str(valorAPosta)+';'+ str(corAposta)+';'+ str(brancoAposta)+';'+ str(winAposta)+';'+ str(contadorAposta) +';'+ str(datetime.today()))
-
-                if winAposta == True:
-                    valorAPosta = valorAPostaInicial
-                    contadorAposta = 1                        
-                    continue
-
-                if winAposta == False and i == 2:
-                    valorAPosta = float(valorAPosta) * 2
-                    contadorAposta = int(contadorAposta) + int(1)
-            
-
-            # return [Erro (true ou false), UltimaCor, UltimoNumero]
-            return [False, str(ultimaCorBlaze), ultimoNumBlaze]
-        except Exception as error:
-            print('Erro Método getLastBet: ', error)
-            return [True]
-
-    def waitingFirstLoss(self, driver, corAposta, brancoAposta, numJogadaAntTelegram, corJogadaAntTelegram):
-        try:
-            if corAposta == '' or corAposta != 'VERMELHO' and corAposta != 'PRETO':
-                raise Exception('Cor inválida: ', corAposta)
-            elif brancoAposta != True and brancoAposta != False:
-                raise Exception('Situação inválida para o Branco: ', brancoAposta)
-            elif numJogadaAntTelegram == '' or not isinstance(numJogadaAntTelegram, int):
-                    raise Exception('Numero da Jogada Anterior inválido: ', numJogadaAntTelegram)
-            elif corJogadaAntTelegram == '' or corJogadaAntTelegram != 'red' and corJogadaAntTelegram != 'black' and corJogadaAntTelegram != 'white':
-                raise Exception('Cor da Jogada Anterior inválido: ', corJogadaAntTelegram)
-
-            wait = WebDriverWait(driver, 30)
+            print('Iniciando WaitingFirstLoss')
+            timestampAnterior = ''
             bet = True
             while(bet == True):
+                time.sleep(3)
+                print('Buscando Mensagem Telegram')
+                retMsg = self.getLastMessage(driverTelegram)
+                erro = retMsg[0]
+                if erro == True:
+                    raise Exception('Erro ao buscar ultima mensagem')
+                corAposta = retMsg[1]
+                brancoAposta = retMsg[2]
+                numJogadaAnterior = retMsg[3]
+                corJogadaAnterior = retMsg[4]
+                timestamp = retMsg[5]
+                print('Cor para apostar: ', str(corAposta))
+                
+                if erro == True:
+                    raise Exception('Erro ao tentar identificar os dados do Telegram. Array: ', retMsg)
+                elif corAposta == '' or corAposta != 'VERMELHO' and corAposta != 'PRETO':
+                    raise Exception('Erro ao tentar identificar a cor da Aposta')
+                elif brancoAposta != True and brancoAposta != False:
+                    raise Exception('Erro ao tentar identificar o branco ')
+                elif numJogadaAnterior == '' or not isinstance(numJogadaAnterior, int):
+                    raise Exception('Erro ao tentar identificar o Numero da Jogada Anterior')
+                elif corJogadaAnterior == '' or corJogadaAnterior != 'red' and corJogadaAnterior != 'black' and corJogadaAnterior != 'white':
+                    raise Exception('Erro ao tentar identificar a Cor da Jogada Anterior')
+                elif timestamp == '' or not timestamp.isdigit():
+                    raise Exception('Erro ao tentar identificar o Timestamp da mensagem')
+                
+                if timestamp == timestampAnterior or timestamp < timestampAnterior:
+                    continue
+                timestampAnterior = timestamp
+
+                win = False
                 for i in [1, 2, 3]:
                     if win == True:
                         continue
-
-                    retLastBet = self.getLastBet(driver, False)
+                    
+                    print('Iniciando Busca da ultima Aposta')
+                    retLastBet = self.getLastBet(driverBlaze, True)
                     erroNewBet = retLastBet[0]
                     if erroNewBet == True:
                         raise Exception('Erro ao tentar buscar ultima aposta Blaze para consultar Entrada')
-                    newUltimaCorBlaze = retLastBet[1]
-                    newUltimoNumBlaze = retLastBet[2]
+                    ultimaCorBlaze = retLastBet[1]
+                    ultimoNumBlaze = retLastBet[2]
 
-                    win = False
-                    if str(newUltimaCorBlaze) == str(corAposta):
+                    if str(corJogadaAnterior) != str(ultimaCorBlaze):
+                        print("Cor Rodada Anterior Telegram: " + corJogadaAnterior + " diferente da cor Blaze: " + ultimaCorBlaze)
+                        win = True
+                        continue 
+
+                    if int(numJogadaAnterior) != int(ultimoNumBlaze) and str(numJogadaAnterior) != 'white':
+                        print('Número Rodada Anterior Telegram: '+ str(numJogadaAnterior) + ' diferente do Número Blaze: ' + str(ultimoNumBlaze))
+                        win = True
+                        continue 
+
+                    if str(ultimaCorBlaze) == str(corAposta):
                         win = True
 
-                    if str(newUltimaCorBlaze) == 'white' and brancoAposta == True:
+                    if str(ultimaCorBlaze) == 'white' and brancoAposta == True:
                         win = True
 
-                    print('Resultado - WIN: ' + str(win) + ' | Cor: ' + str(newUltimaCorBlaze) + ' | Num: ' + str(newUltimoNumBlaze))
-                    
-                    if win == True:
-                        continue
-            
+                    print('Resultado - WIN: ' + str(win) + ' | Cor: ' + str(ultimaCorBlaze) + ' | Num: ' + str(ultimoNumBlaze))   
 
+                if win == False:
+                    bet = False    
 
-            # MARTINGALE
-            for i in [1, 2]: 
-                if winAposta == True:
-                    continue
-
-                print('INICIADO MARTINGALE: ', i)
-                contadorAposta = int(contadorAposta) + int(1)
-                valorAPosta = float(valorAPosta) * 2
-                newRetAposta = self.bet(driver, valorAPosta, str(corAposta), brancoAposta, int(ultimoNumBlaze), str(ultimaCorBlaze))
-                erroAposta = newRetAposta[0]
-                if erroAposta == True:
-                    raise Exception('Erro na aposta Martingale. Dados: ', retMsg)
-                winAposta = newRetAposta[1]
-                ultimaCorBlaze = newRetAposta[2]
-                ultimoNumBlaze = newRetAposta[3]
-                logging.error(';'+str(valorAPosta)+';'+ str(corAposta)+';'+ str(brancoAposta)+';'+ str(winAposta)+';'+ str(contadorAposta) +';'+ str(datetime.today()))
-
-                if winAposta == True:
-                    valorAPosta = valorAPostaInicial
-                    contadorAposta = 1                        
-                    continue
-
-                if winAposta == False and i == 2:
-                    valorAPosta = float(valorAPosta) * 2
-                    contadorAposta = int(contadorAposta) + int(1)
-            
-
-            # return [Erro (true ou false), UltimaCor, UltimoNumero]
-            return [False, str(ultimaCorBlaze), ultimoNumBlaze]
+            return True
         except Exception as error:
-            print('Erro Método getLastBet: ', error)
-            return [True]
+            print('Erro Método waitingFirstLoss: ', error)
+            return False
         
