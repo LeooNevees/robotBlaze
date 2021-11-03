@@ -181,7 +181,8 @@ class Double:
             grupoData = chat.find_elements_by_class_name('bubbles-date-group')
             # print('quantidade grupoData:')
             qtdeGrupoData = len(grupoData) 
-            xpathGrupo = xpathChatGeral + '/div[' + str(qtdeGrupoData) + ']'
+            # xpathGrupo = xpathChatGeral + '/div[' + str(qtdeGrupoData) + ']'
+            xpathGrupo = xpathChatGeral + '/div'
             # print('xpathGrupo')
             # print(xpathGrupo)
             grupoChat = wait.until(EC.presence_of_element_located((By.XPATH, xpathGrupo)))
@@ -197,14 +198,14 @@ class Double:
             if divPaiUltimaMensagem == False:
                 raise Exception('Não foi possível identificar a DIV PAI da última mensagem')
             
-            xpathMessage = xpathDiv + str('/div/div/div[1]')
+            xpathMessage = xpathDiv + str('/div/div/div[2]')
             # print('XpathMessage')
             # print(xpathMessage)
             div = wait.until(EC.presence_of_element_located((By.XPATH, xpathMessage)))
             if div == False:
                 raise Exception('Não foi possível ler a mensagem  CHAT VIP')
             text = div.text
-            # print('text')
+            # print('text: ')
             # print(text)
             numCaracterJogoAnterior = text.find('após o ')
             deCaracterJogoAnterior = int(numCaracterJogoAnterior) + 7
@@ -361,6 +362,7 @@ class Double:
             wait = WebDriverWait(driver, 30)
         
             if aguardar == True:
+                print('Entrou no aguardar True')
                 newStyleTemporizador = str('display: flex;')
                 while (newStyleTemporizador != 'display: none;'):
                     divPai = wait.until(EC.presence_of_element_located((By.ID, 'roulette-timer')))
@@ -371,6 +373,7 @@ class Double:
                     if newStyleTemporizador != 'display: none;':
                         time.sleep(2)
 
+            print('Saiu do aguardar True')
             styleTemporizador = str('display: none;')
             while (styleTemporizador != 'display: flex;'):
                 divPai = wait.until(EC.presence_of_element_located((By.ID, 'roulette-timer')))
@@ -436,11 +439,40 @@ class Double:
                     raise Exception('Erro ao tentar identificar o Timestamp da mensagem')
                 
                 if timestamp == timestampAnterior or timestamp < timestampAnterior:
+                    print('Timestamp igual ao anterior.... Refazendo busca!')
                     continue
                 timestampAnterior = timestamp
 
+                print('Iniciando Busca da ultima Aposta')
+                retLastBet = self.getLastBet(driverBlaze, True)
+                erroNewBet = retLastBet[0]
+                if erroNewBet == True:
+                    raise Exception('Erro ao tentar buscar ultima aposta Blaze para consultar Entrada')
+                ultimaCorBlaze = retLastBet[1]
+                ultimoNumBlaze = retLastBet[2]
+
+                if str(corJogadaAnterior) != str(ultimaCorBlaze):
+                    print("Cor Rodada Anterior Telegram: " + corJogadaAnterior + " diferente da cor Blaze: " + ultimaCorBlaze)
+                    continue 
+
+                if int(numJogadaAnterior) != int(ultimoNumBlaze) and str(numJogadaAnterior) != 'white':
+                    print('Número Rodada Anterior Telegram: '+ str(numJogadaAnterior) + ' diferente do Número Blaze: ' + str(ultimoNumBlaze))
+                    continue 
+                
                 win = False
-                for i in [1, 2, 3]:
+                if str(ultimaCorBlaze) == str(corAposta):
+                    win = True
+
+                if str(ultimaCorBlaze) == 'white' and brancoAposta == True:
+                    win = True
+                
+                print('Resultado - WIN: ' + str(win) + ' | Cor: ' + str(ultimaCorBlaze) + ' | Num: ' + str(ultimoNumBlaze))   
+
+                if win == True:
+                    continue
+
+                for i in [1, 2]:
+                    print('Iniciando Martingale ', str(i))
                     if win == True:
                         continue
                     
@@ -452,16 +484,6 @@ class Double:
                     ultimaCorBlaze = retLastBet[1]
                     ultimoNumBlaze = retLastBet[2]
 
-                    if str(corJogadaAnterior) != str(ultimaCorBlaze):
-                        print("Cor Rodada Anterior Telegram: " + corJogadaAnterior + " diferente da cor Blaze: " + ultimaCorBlaze)
-                        win = True
-                        continue 
-
-                    if int(numJogadaAnterior) != int(ultimoNumBlaze) and str(numJogadaAnterior) != 'white':
-                        print('Número Rodada Anterior Telegram: '+ str(numJogadaAnterior) + ' diferente do Número Blaze: ' + str(ultimoNumBlaze))
-                        win = True
-                        continue 
-
                     if str(ultimaCorBlaze) == str(corAposta):
                         win = True
 
@@ -471,7 +493,7 @@ class Double:
                     print('Resultado - WIN: ' + str(win) + ' | Cor: ' + str(ultimaCorBlaze) + ' | Num: ' + str(ultimoNumBlaze))   
 
                 if win == False:
-                    bet = False    
+                    bet = False
 
             return True
         except Exception as error:
