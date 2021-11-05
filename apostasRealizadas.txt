@@ -1,1 +1,15 @@
-ERROR:root:;valorAPosta;corAposta;brancoAposta;winAposta;contadorApostaData/Hora
+ERROR:root:;valorAPosta;corAposta;brancoAposta;winAposta;contadorAposta;Data/Hora
+ERROR:root:;0.02;PRETO;False;True;1;2021-11-05 19:11:57.431666
+ERROR:root:;0.02;PRETO;False;False;1;2021-11-05 19:12:28.723713
+ERROR:root:;0.04;PRETO;False;False;2;2021-11-05 19:13:00.341901
+ERROR:root:;0.08;PRETO;False;False;3;2021-11-05 19:13:32.149583
+ERROR:root:;0.16;PRETO;False;False;3;2021-11-05 19:14:04.976968
+ERROR:root:;0.32;PRETO;False;True;4;2021-11-05 19:14:36.124839
+ERROR:root:;0.02;VERMELHO;False;False;1;2021-11-05 19:15:08.493580
+ERROR:root:;0.04;VERMELHO;False;False;2;2021-11-05 19:15:40.955935
+ERROR:root:;0.08;VERMELHO;False;False;3;2021-11-05 19:16:14.195902
+ERROR:root:;0.16;PRETO;False;True;3;2021-11-05 19:18:20.529352
+ERROR:root:;0.02;PRETO;False;True;1;2021-11-05 19:18:54.758410
+ERROR:root:;0.02;PRETO;False;True;1;2021-11-05 19:19:59.187745
+ERROR:root:;0.02;PRETO;False;False;1;2021-11-05 19:20:29.635878
+ERROR:root:;0.04;PRETO;False;True;2;2021-11-05 19:21:02.484430

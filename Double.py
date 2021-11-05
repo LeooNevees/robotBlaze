@@ -99,7 +99,8 @@ class Double:
             valorAPosta = valorAPostaInicial
             timestampAnterior = ''
             contadorAposta = 1
-
+            analisador = True
+            
             while(True):
                 time.sleep(3)
                 retMsg = self.getLastMessage(driverTelegram)
@@ -129,13 +130,18 @@ class Double:
                     continue
                 timestampAnterior = timestamp
 
+                if analisador == True:
+                    print('Iniciando Análise do jogo para o próximo HIT')
+                if analisador == False:
+                    print('Realizando APOSTA após HIT')
+
                 # print('Identificado no Telegram nova APOSTA')
                 # print('Cor: ',corAposta)
                 # print('Apostar Branco: ', brancoAposta)
                 # print('numJogadaAnterior: ', numJogadaAnterior)
                 # print('corJogadaAnterior: ', corJogadaAnterior)
 
-                retAposta = self.bet(driverBlaze, valorAPosta, corAposta, brancoAposta, numJogadaAnterior, corJogadaAnterior)
+                retAposta = self.bet(driverBlaze, valorAPosta, corAposta, brancoAposta, numJogadaAnterior, corJogadaAnterior, analisador)
                 if retAposta == None:
                     continue
 
@@ -150,27 +156,9 @@ class Double:
                 if winAposta == True:
                     valorAPosta = valorAPostaInicial
                     contadorAposta = 1
-                    continue
-
-                # if winAposta == True:
-                #     valorAPosta = valorAPostaInicial
-                #     contadorAposta = 1
-                #     continue
-                # else:
-                #     print('INICIADO MARTINGALE')
-                #     contadorAposta = int(contadorAposta) + int(1)
-                #     valorAPosta = float(valorAPosta) * 2
-                #     newRetAposta = self.bet(driverBlaze, valorAPosta, str(corAposta), brancoAposta, int(ultimoNumBlaze), str(ultimaCorBlaze))
-                #     erroAposta = newRetAposta[0]
-                #     if erroAposta == True:
-                #         raise Exception('Erro na aposta Martingale. Dados: ', retMsg)
-                #     winAposta = newRetAposta[1]
-                #     ultimaCorBlaze = newRetAposta[2]
-                #     ultimoNumBlaze = newRetAposta[3]
-                #     logging.error(';'+str(valorAPosta)+';'+ str(corAposta)+';'+ str(brancoAposta)+';'+ str(winAposta)+';'+ str(contadorAposta))
-
-                #     valorAPosta = valorAPostaInicial
-                #     contadorAposta = 1  
+                    if analisador == False:
+                        analisador = True
+                    continue 
 
                 # MARTINGALE
                 for i in [1, 2]: 
@@ -180,7 +168,7 @@ class Double:
                     print('INICIADO MARTINGALE: ', i)
                     contadorAposta = int(contadorAposta) + int(1)
                     valorAPosta = float(valorAPosta) * 2
-                    newRetAposta = self.bet(driverBlaze, valorAPosta, str(corAposta), brancoAposta, int(ultimoNumBlaze), str(ultimaCorBlaze))
+                    newRetAposta = self.bet(driverBlaze, valorAPosta, str(corAposta), brancoAposta, int(ultimoNumBlaze), str(ultimaCorBlaze), analisador)
                     erroAposta = newRetAposta[0]
                     if erroAposta == True:
                         raise Exception('Erro na aposta Martingale. Dados: ', retMsg)
@@ -191,11 +179,16 @@ class Double:
 
                     if winAposta == True:
                         valorAPosta = valorAPostaInicial
-                        contadorAposta = 1                        
+                        contadorAposta = 1      
+                        if analisador == False:
+                            analisador = True                  
                         continue
 
                     if winAposta == False and i == 2:
                         valorAPosta = float(valorAPosta) * 2
+                        if analisador == True:
+                            analisador = False
+                            print('Identificado o primeiro HIT')
 
             return True
         except Exception as error:
@@ -213,10 +206,10 @@ class Double:
             if chat == False:
                 raise Exception('Não foi possível identificar as mensagens do CHAT VIP')
             
-            grupoData = chat.find_elements_by_class_name('bubbles-date-group')
+            # grupoData = chat.find_elements_by_class_name('bubbles-date-group')
             # print('quantidade grupoData:')
-            qtdeGrupoData = len(grupoData) 
-            xpathGrupo = xpathChatGeral + '/div[' + str(qtdeGrupoData) + ']'
+            # qtdeGrupoData = len(grupoData) 
+            xpathGrupo = xpathChatGeral + '/div'
             # print('xpathGrupo')
             # print(xpathGrupo)
             grupoChat = wait.until(EC.presence_of_element_located((By.XPATH, xpathGrupo)))
@@ -231,8 +224,7 @@ class Double:
             divPaiUltimaMensagem = wait.until(EC.presence_of_element_located((By.XPATH, xpathDiv)))
             if divPaiUltimaMensagem == False:
                 raise Exception('Não foi possível identificar a DIV PAI da última mensagem')
-            
-            xpathMessage = xpathDiv + str('/div/div/div[1]')
+            xpathMessage = xpathDiv + str('/div/div/div[2]')
             # print('XpathMessage')
             # print(xpathMessage)
             div = wait.until(EC.presence_of_element_located((By.XPATH, xpathMessage)))
@@ -292,7 +284,7 @@ class Double:
             print('Erro Método getLastMessage: ', error)
             return [True]
 
-    def bet(self, driver, valorAposta, corAposta, brancoAposta, numJogadaAntTelegram, corJogadaAntTelegram):
+    def bet(self, driver, valorAposta, corAposta, brancoAposta, numJogadaAntTelegram, corJogadaAntTelegram, analisador = False):
         try:
             if driver == '':
                 raise Exception ('Driver não fornecido no método bet')
@@ -353,7 +345,9 @@ class Double:
             botaoComecarJogo = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="roulette-controller"]/div[1]/div[2]/button')))
             if botaoComecarJogo == False:
                 raise Exception('Erro ao identificar o botao Começar Jogo ')
-            # botaoComecarJogo.click()
+            if analisador == False:
+                botaoComecarJogo.click()
+                print('FEZ A APOSTA DEFINITIVAMENTE')
 
             if brancoAposta == True:
                 aguardarBotao = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="roulette-controller"]/div[1]/div[2]/button')))
@@ -365,7 +359,9 @@ class Double:
                 if botaoCorBranco == False:
                     raise Exception('Erro ao identificar o botao da Cor Branco')
                 botaoCorBranco.click()
-                # botaoComecarJogo.click()
+                if analisador == False:
+                    botaoComecarJogo.click()
+                    print('FEZ A APOSTA DEFINITIVAMENTE')
 
             print('Feito Aposta')     
             print('Analisando WIN')       
