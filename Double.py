@@ -184,11 +184,18 @@ class Double:
                             analisador = True                  
                         continue
 
-                    if winAposta == False and i == 2:
+                    if i == 2:
                         valorAPosta = float(valorAPosta) * 2
+                        contadorAposta = contadorAposta + 1
                         if analisador == True:
                             analisador = False
                             print('Identificado o primeiro HIT')
+
+                if contadorAposta > 5:
+                    print('Entrou no contadorAposta > 5')
+                    analisador = True
+                    valorAPosta = valorAPostaInicial
+                    contadorAposta = 1
 
             return True
         except Exception as error:
