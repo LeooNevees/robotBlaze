@@ -99,7 +99,6 @@ class Double:
             valorAPosta = valorAPostaInicial
             timestampAnterior = ''
             contadorAposta = 1
-            analisador = True
             
             while(True):
                 time.sleep(3)
@@ -130,18 +129,7 @@ class Double:
                     continue
                 timestampAnterior = timestamp
 
-                if analisador == True:
-                    print('Iniciando Análise do jogo para o próximo HIT')
-                if analisador == False:
-                    print('Realizando APOSTA após HIT')
-
-                # print('Identificado no Telegram nova APOSTA')
-                # print('Cor: ',corAposta)
-                # print('Apostar Branco: ', brancoAposta)
-                # print('numJogadaAnterior: ', numJogadaAnterior)
-                # print('corJogadaAnterior: ', corJogadaAnterior)
-
-                retAposta = self.bet(driverBlaze, valorAPosta, corAposta, brancoAposta, numJogadaAnterior, corJogadaAnterior, analisador)
+                retAposta = self.bet(driverBlaze, valorAPosta, corAposta, brancoAposta, numJogadaAnterior, corJogadaAnterior, False)
                 if retAposta == None:
                     continue
 
@@ -153,47 +141,10 @@ class Double:
                 ultimoNumBlaze = retAposta[3]
                 logging.error(';'+str(valorAPosta)+';'+ str(corAposta)+';'+ str(brancoAposta)+';'+ str(winAposta)+';'+ str(contadorAposta) +';'+ str(datetime.today()))
                 
+                valorAPosta = float(valorAPosta) * 2
+                contadorAposta = int(contadorAposta) + int(1)
+
                 if winAposta == True:
-                    valorAPosta = valorAPostaInicial
-                    contadorAposta = 1
-                    if analisador == False:
-                        analisador = True
-                    continue 
-
-                # MARTINGALE
-                for i in [1, 2]: 
-                    if winAposta == True:
-                        continue
-
-                    print('INICIADO MARTINGALE: ', i)
-                    contadorAposta = int(contadorAposta) + int(1)
-                    valorAPosta = float(valorAPosta) * 2
-                    newRetAposta = self.bet(driverBlaze, valorAPosta, str(corAposta), brancoAposta, int(ultimoNumBlaze), str(ultimaCorBlaze), analisador)
-                    erroAposta = newRetAposta[0]
-                    if erroAposta == True:
-                        raise Exception('Erro na aposta Martingale. Dados: ', retMsg)
-                    winAposta = newRetAposta[1]
-                    ultimaCorBlaze = newRetAposta[2]
-                    ultimoNumBlaze = newRetAposta[3]
-                    logging.error(';'+str(valorAPosta)+';'+ str(corAposta)+';'+ str(brancoAposta)+';'+ str(winAposta)+';'+ str(contadorAposta) +';'+ str(datetime.today()))
-
-                    if winAposta == True:
-                        valorAPosta = valorAPostaInicial
-                        contadorAposta = 1      
-                        if analisador == False:
-                            analisador = True                  
-                        continue
-
-                    if i == 2:
-                        valorAPosta = float(valorAPosta) * 2
-                        contadorAposta = contadorAposta + 1
-                        if analisador == True:
-                            analisador = False
-                            print('Identificado o primeiro HIT')
-
-                if contadorAposta > 5:
-                    print('Entrou no contadorAposta > 5')
-                    analisador = True
                     valorAPosta = valorAPostaInicial
                     contadorAposta = 1
 
@@ -354,7 +305,6 @@ class Double:
                 raise Exception('Erro ao identificar o botao Começar Jogo ')
             if analisador == False:
                 botaoComecarJogo.click()
-                print('FEZ A APOSTA DEFINITIVAMENTE')
 
             if brancoAposta == True:
                 aguardarBotao = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="roulette-controller"]/div[1]/div[2]/button')))
@@ -368,7 +318,6 @@ class Double:
                 botaoCorBranco.click()
                 if analisador == False:
                     botaoComecarJogo.click()
-                    print('FEZ A APOSTA DEFINITIVAMENTE')
 
             print('Feito Aposta')     
             print('Analisando WIN')       
