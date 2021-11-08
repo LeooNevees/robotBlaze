@@ -95,7 +95,7 @@ class Double:
             elif driverTelegram == '' :
                 raise Exception ('Driver Telegram não fornecido no método loop')
 
-            valorAPostaInicial = 0.02
+            valorAPostaInicial = 0.01
             valorAPosta = valorAPostaInicial
             timestampAnterior = ''
             contadorAposta = 1
