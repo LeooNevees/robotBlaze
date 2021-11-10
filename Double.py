@@ -88,14 +88,14 @@ class Double:
     def loop(self, driverBlaze, driverTelegram):
         try:
             logging.basicConfig(filename='apostasRealizadas.txt', level=logging.ERROR)
-            logging.error(';'+str('valorAPosta')+';'+ str('corAposta')+';'+ str('brancoAposta')+';'+ str('winAposta')+';'+ str('contadorAposta')+';'+ str('Data/Hora'))
+            logging.error(';'+str('valorAPosta')+';'+ str('corAposta')+';'+ str('brancoAposta')+';'+ str('winAposta')+';'+ str('corBlaze')+';'+ str('contadorAposta')+';'+ str('Data/Hora'))
 
             if driverBlaze == '' :
                 raise Exception ('Driver Blaze não fornecido no método loop')
             elif driverTelegram == '' :
                 raise Exception ('Driver Telegram não fornecido no método loop')
 
-            valorAPostaInicial = 0.02
+            valorAPostaInicial = 0.01
             valorAPosta = valorAPostaInicial
             timestampAnterior = ''
             contadorAposta = 1
@@ -139,7 +139,7 @@ class Double:
                 winAposta = retAposta[1]
                 ultimaCorBlaze = retAposta[2]
                 ultimoNumBlaze = retAposta[3]
-                logging.error(';'+str(valorAPosta)+';'+ str(corAposta)+';'+ str(brancoAposta)+';'+ str(winAposta)+';'+ str(contadorAposta) +';'+ str(datetime.today()))
+                logging.error(';'+str(valorAPosta)+';'+ str(corAposta)+';'+ str(brancoAposta)+';'+ str(winAposta)+';'+ str(ultimaCorBlaze)+';'+ str(contadorAposta) +';'+ str(datetime.today()))
                 
                 valorAPosta = float(valorAPosta) * 2
                 contadorAposta = int(contadorAposta) + int(1)
